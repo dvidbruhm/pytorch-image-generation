@@ -1,0 +1,5 @@
+data/
+raw_data/
+results/
+.vscode/
+__pycache__/

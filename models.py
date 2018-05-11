@@ -1,0 +1,85 @@
+import torch
+import torch.nn as nn
+
+# Initialise weights of the model with certain mean and standard deviation
+def weights_init_general(model, mean, std):
+    for m in model._modules:
+        if isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Conv2d):
+            model._modules[m].weight.data.normal_(mean, std)
+            model._modules[m].bias.data.zero_()
+
+
+class Generator(nn.Module):
+    def __init__(self, input_size, general_complexity, weights_mean, weights_std):
+        super(Generator, self).__init__()
+
+        self.loss = nn.BCELoss()
+
+        self.layer1 = nn.Sequential(
+            nn.ConvTranspose2d(input_size, 4 * 3 * general_complexity, 4, 1, 0, bias=False),
+            nn.BatchNorm2d(4 * 3 * general_complexity),
+            nn.ReLU(True)
+        )
+        self.layer2 = nn.Sequential(
+            nn.ConvTranspose2d(4 * 3 * general_complexity, 2 * 3 * general_complexity, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(2 * 3 * general_complexity),
+            nn.ReLU(True)
+        )
+        self.layer3 = nn.Sequential(
+            nn.ConvTranspose2d(2 * 3 * general_complexity, 1 * 3 * general_complexity, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(1 * 3 * general_complexity),
+            nn.ReLU(True)
+        )
+        self.layer4 = nn.Sequential(
+            nn.ConvTranspose2d(1 * 3 * general_complexity, 1 * 3, 4, 2, 1, bias=False),
+            nn.Tanh()
+        )
+
+        self.weights_init(weights_mean, weights_std)
+    
+    def forward(self, input):
+        output = self.layer1(input)
+        output = self.layer2(output)
+        output = self.layer3(output)
+        output = self.layer4(output)
+        return output
+
+    def weights_init(self, mean, std):
+        weights_init_general(self, mean, std)
+
+class Discriminator(nn.Module):
+    def __init__(self, general_complexity, weights_mean, weights_std):
+        super(Discriminator, self).__init__()
+
+        self.loss = nn.BCELoss()
+
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(3, general_complexity, 4, 2, 1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True)
+        )
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(general_complexity, general_complexity * 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(general_complexity * 2),
+            nn.LeakyReLU(0.2, inplace=True)
+        )
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(general_complexity * 2, general_complexity * 4, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(general_complexity * 4),
+            nn.LeakyReLU(0.2, inplace=True)
+        )
+        self.layer4 = nn.Sequential(
+            nn.Conv2d(general_complexity * 4, 1, 4, 1, 0, bias=False),
+            nn.Sigmoid()
+        )
+    
+        self.weights_init(weights_mean, weights_std)
+
+    def forward(self, input):
+        output = self.layer1(input)
+        output = self.layer2(output)
+        output = self.layer3(output)
+        output = self.layer4(output)
+        return output
+
+    def weights_init(self, mean, std):
+        weights_init_general(self, mean, std)
