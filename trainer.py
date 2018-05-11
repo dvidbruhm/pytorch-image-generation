@@ -133,6 +133,8 @@ def rescale_for_rgb_image(images):
     return (images.data-min_val)/(max_val-min_val)
 
 
-trainer = DCGANTrainer()
-trainer.load_dataset()
-trainer.train()
+
+if __name__ == "__main__":
+    trainer = DCGANTrainer()
+    trainer.load_dataset()
+    trainer.train()
