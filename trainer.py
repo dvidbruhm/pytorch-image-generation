@@ -111,9 +111,9 @@ class DCGANTrainer():
             self.write_plots()
 
     def write_image(self, epoch):
-        image_data = self.generator(self.saved_latent_input).view(self.image_size * self.nb_image_to_gen, self.image_size, 3)
+        image_data = self.generator(self.saved_latent_input).permute(0, 2, 3, 1).contiguous().view(self.image_size * self.nb_image_to_gen, self.image_size, 3)
         image_data = rescale_for_rgb_image(image_data)
-        image.imsave(self.save_path + "gen_epoch_" + str(epoch) + ".png", image_data)
+        image.imsave(self.save_path + "gen_epoch_" + str(epoch) + ".png", image_data.data)
 
     def write_plots(self):
         # Save losses
