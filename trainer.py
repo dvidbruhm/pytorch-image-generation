@@ -109,6 +109,8 @@ class DCGANTrainer():
 
             self.write_image(epoch)
             self.write_plots()
+        
+        self.save_models("end")
 
     def write_image(self, epoch):
         image_data = self.generator(self.saved_latent_input).permute(0, 2, 3, 1).contiguous().view(self.image_size * self.nb_image_to_gen, self.image_size, 3)
@@ -116,18 +118,25 @@ class DCGANTrainer():
         image.imsave(self.save_path + "gen_epoch_" + str(epoch) + ".png", image_data.data)
 
     def write_plots(self):
-        # Save losses
+        # Plot losses
         plt.plot(self.generator_losses, label="G loss")
         plt.plot(self.discriminator_losses, label="D loss")
+
         plt.legend(loc="best")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
+
         plt.savefig(self.save_path + "losses.png")
 
         plt.clf()
-
+ 
+    def save_models(self, epoch):
+        print("Saving models to : " + self.save_path)
+        torch.save(self.discriminator.state_dict(), self.save_path + "discriminator_epoch_" + str(epoch) + ".pt")
+        torch.save(self.generator.state_dict(), self.save_path + "generator_epoch_" + str(epoch) + ".pt")
 
 def rescale_for_rgb_image(images):
+    # Rescale to 0-1 range
     min_val = images.data.min()
     max_val = images.data.max()
     return (images.data-min_val)/(max_val-min_val)
