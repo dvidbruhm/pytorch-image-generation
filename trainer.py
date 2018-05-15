@@ -84,31 +84,16 @@ class DCGANTrainer():
                 # Generate with noise
                 latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
                 generated_batch = self.generator(latent_noise)
+                packed_generated_batch = self.pack(generated_batch)
 
                 ### Train discriminator
-                self.discriminator.zero_grad()
-
-                # Train on real data
-                real_prediction = self.discriminator(packed_real_data).squeeze()
-                loss_discriminator_real = self.discriminator.loss(real_prediction, label_real_smooth if self.real_label_smoothing else label_real)
-                #loss_discriminator_real.backward()
-
-                # Train on fake data
-                fake_prediction = self.discriminator(self.pack(generated_batch.detach())).squeeze()
-                loss_discriminator_fake = self.discriminator.loss(fake_prediction, label_fake_smooth if self.fake_label_smoothing else label_fake)
-                #loss_discriminator_fake.backward()
-
-                # Add losses
-                loss_discriminator_total = loss_discriminator_real + loss_discriminator_fake
-                loss_discriminator_total.backward()
-                self.D_optimiser.step()
+                loss_discriminator_total = self.train_discriminator(packed_real_data, 
+                                                packed_generated_batch,
+                                                label_real_smooth if self.real_label_smoothing else label_real,
+                                                label_fake_smooth if self.fake_label_smoothing else label_fake)
 
                 ### Train generator
-                self.generator.zero_grad()
-                fake_prediction = self.discriminator(self.pack(generated_batch)).squeeze()
-                loss_generator = self.generator.loss(fake_prediction, label_real)
-                loss_generator.backward()
-                self.G_optimiser.step()
+                loss_generator = self.train_generator(packed_generated_batch, label_real)
 
                 ### Keep track of losses
                 d_loss.append(loss_discriminator_total.item())
@@ -121,6 +106,41 @@ class DCGANTrainer():
             self.write_plots()
         
         self.save_models("end")
+
+    def train_discriminator(self, real_data, fake_data, real_label, fake_label):
+        ### Train discriminator
+        self.discriminator.zero_grad()
+
+        # Train on real data
+        real_prediction = self.discriminator(real_data).squeeze()
+        loss_discriminator_real = self.discriminator.loss(real_prediction, real_label)
+        #loss_discriminator_real.backward()
+
+        # Train on fake data
+        fake_prediction = self.discriminator(fake_data.detach()).squeeze()
+        loss_discriminator_fake = self.discriminator.loss(fake_prediction, fake_label)
+        #loss_discriminator_fake.backward()
+
+        # Add losses
+        loss_discriminator_total = loss_discriminator_real + loss_discriminator_fake
+        loss_discriminator_total.backward()
+        self.D_optimiser.step()
+
+        return loss_discriminator_total
+
+
+    def train_generator(self, fake_data, real_label):
+        ### Train generator
+        self.generator.zero_grad()
+
+        fake_prediction = self.discriminator(fake_data).squeeze()
+
+        # Loss
+        loss_generator = self.generator.loss(fake_prediction, real_label)
+        loss_generator.backward()
+        self.G_optimiser.step()
+
+        return loss_generator
 
     def write_image(self, epoch):
         image_data = self.generator(self.saved_latent_input).permute(0, 2, 3, 1).contiguous().view(self.image_size * self.nb_image_to_gen, self.image_size, 3)
