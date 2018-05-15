@@ -79,8 +79,8 @@ class DCGANTrainer():
                 label_real = torch.full((packed_batch_size,), 1, device=self.device)
                 label_fake = torch.full((packed_batch_size,), 0, device=self.device)
                 # smoothed real labels between 0.7 and 1, and fake between 0 and 0.3
-                label_real_smooth = torch.rand((packed_batch_size,)) * 0.3 + 0.7
-                label_fake_smooth = torch.rand((packed_batch_size,)) * 0.3
+                label_real_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3 + 0.7
+                label_fake_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3
 
                 # Generate with noise
                 latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
