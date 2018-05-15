@@ -14,13 +14,16 @@ class DCGANTrainer():
     def __init__(self, save_path=SAVE_PATH, beta1=BETA1, beta2=BETA2, 
                  nb_image_to_gen=NB_IMAGE_TO_GENERATE, latent_input=LATENT_INPUT,
                  image_size=IMAGE_SIZE, weights_mean=WEIGHTS_MEAN, weights_std=WEIGHTS_STD,
-                 model_complexity=COMPLEXITY, learning_rate=LEARNING_RATE, packing=PACKING):
+                 model_complexity=COMPLEXITY, learning_rate=LEARNING_RATE, packing=PACKING,
+                 real_label_smoothing=REAL_LABEL_SMOOTHING, fake_label_smoothing=FAKE_LABEL_SMOOTHING):
 
         self.latent_input = latent_input
         self.nb_image_to_gen = nb_image_to_gen
         self.image_size = image_size
         self.save_path = save_path
         self.packing = packing
+        self.real_label_smoothing = real_label_smoothing
+        self.fake_label_smoothing = fake_label_smoothing
         
         # Device (cpu or gpu)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -74,6 +77,9 @@ class DCGANTrainer():
                 # labels
                 label_real = torch.full((packed_batch_size,), 1, device=self.device)
                 label_fake = torch.full((packed_batch_size,), 0, device=self.device)
+                # smoothed real labels between 0.7 and 1, and fake between 0 and 0.3
+                label_real_smooth = torch.rand((packed_batch_size,)) * 0.3 + 0.7
+                label_fake_smooth = torch.rand((packed_batch_size,)) * 0.3
 
                 # Generate with noise
                 latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
@@ -84,12 +90,12 @@ class DCGANTrainer():
 
                 # Train on real data
                 real_prediction = self.discriminator(packed_real_data).squeeze()
-                loss_discriminator_real = self.discriminator.loss(real_prediction, label_real)
+                loss_discriminator_real = self.discriminator.loss(real_prediction, label_real_smooth if self.real_label_smoothing else label_real)
                 #loss_discriminator_real.backward()
 
                 # Train on fake data
                 fake_prediction = self.discriminator(self.pack(generated_batch.detach())).squeeze()
-                loss_discriminator_fake = self.discriminator.loss(fake_prediction, label_fake)
+                loss_discriminator_fake = self.discriminator.loss(fake_prediction, label_fake_smooth if self.fake_label_smoothing else label_fake)
                 #loss_discriminator_fake.backward()
 
                 # Add losses
