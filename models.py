@@ -48,13 +48,13 @@ class Generator(nn.Module):
         weights_init_general(self, mean, std)
 
 class Discriminator(nn.Module):
-    def __init__(self, general_complexity, weights_mean, weights_std):
+    def __init__(self, general_complexity, weights_mean, weights_std, packing):
         super(Discriminator, self).__init__()
 
         self.loss = nn.BCELoss()
 
         self.layer1 = nn.Sequential(
-            nn.Conv2d(3, general_complexity, 4, 2, 1, bias=False),
+            nn.Conv2d(3 * packing, general_complexity, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, inplace=True)
         )
         self.layer2 = nn.Sequential(

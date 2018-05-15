@@ -14,19 +14,20 @@ class DCGANTrainer():
     def __init__(self, save_path=SAVE_PATH, beta1=BETA1, beta2=BETA2, 
                  nb_image_to_gen=NB_IMAGE_TO_GENERATE, latent_input=LATENT_INPUT,
                  image_size=IMAGE_SIZE, weights_mean=WEIGHTS_MEAN, weights_std=WEIGHTS_STD,
-                 model_complexity=COMPLEXITY, learning_rate=LEARNING_RATE):
+                 model_complexity=COMPLEXITY, learning_rate=LEARNING_RATE, packing=PACKING):
 
         self.latent_input = latent_input
         self.nb_image_to_gen = nb_image_to_gen
         self.image_size = image_size
         self.save_path = save_path
+        self.packing = packing
         
         # Device (cpu or gpu)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Models
         self.generator = Generator(latent_input, model_complexity, weights_mean, weights_std).to(self.device)
-        self.discriminator = Discriminator(model_complexity, weights_mean, weights_std).to(self.device)
+        self.discriminator = Discriminator(model_complexity, weights_mean, weights_std, packing).to(self.device)
 
         # Optimizers
         self.D_optimiser = optim.Adam(self.discriminator.parameters(), lr = learning_rate, betas = (beta1, beta2))
@@ -67,9 +68,12 @@ class DCGANTrainer():
                 real_batch_data = x.to(self.device)
                 current_batch_size = x.shape[0]
 
+                packed_real_data = self.pack(real_batch_data)
+                packed_batch_size = packed_real_data.shape[0]
+
                 # labels
-                label_real = torch.full((current_batch_size,), 1, device=self.device)
-                label_fake = torch.full((current_batch_size,), 0, device=self.device)
+                label_real = torch.full((packed_batch_size,), 1, device=self.device)
+                label_fake = torch.full((packed_batch_size,), 0, device=self.device)
 
                 # Generate with noise
                 latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
@@ -79,12 +83,12 @@ class DCGANTrainer():
                 self.discriminator.zero_grad()
 
                 # Train on real data
-                real_prediction = self.discriminator(real_batch_data).squeeze()
+                real_prediction = self.discriminator(packed_real_data).squeeze()
                 loss_discriminator_real = self.discriminator.loss(real_prediction, label_real)
                 #loss_discriminator_real.backward()
 
                 # Train on fake data
-                fake_prediction = self.discriminator(generated_batch.detach()).squeeze()
+                fake_prediction = self.discriminator(self.pack(generated_batch.detach())).squeeze()
                 loss_discriminator_fake = self.discriminator.loss(fake_prediction, label_fake)
                 #loss_discriminator_fake.backward()
 
@@ -95,7 +99,7 @@ class DCGANTrainer():
 
                 ### Train generator
                 self.generator.zero_grad()
-                fake_prediction = self.discriminator(generated_batch).squeeze()
+                fake_prediction = self.discriminator(self.pack(generated_batch)).squeeze()
                 loss_generator = self.generator.loss(fake_prediction, label_real)
                 loss_generator.backward()
                 self.G_optimiser.step()
@@ -134,6 +138,18 @@ class DCGANTrainer():
         print("Saving models to : " + self.save_path)
         torch.save(self.discriminator.state_dict(), self.save_path + "discriminator_epoch_" + str(epoch) + ".pt")
         torch.save(self.generator.state_dict(), self.save_path + "generator_epoch_" + str(epoch) + ".pt")
+
+    def pack(self, input):
+        # Number of elements that need to be added to the input tensor
+        nb_to_add = (self.packing - (input.shape[0] % self.packing)) % self.packing
+
+        # Add elements to the input if not a round number for the packing number
+        if nb_to_add > 0:
+            input = torch.cat((input, input[-nb_to_add:].view(nb_to_add, 3, input.shape[2], input.shape[3])))
+
+        # Reshape the tensor so it is packed
+        packed_output = input.view(-1, input.shape[1] * self.packing, input.shape[2], input.shape[3])
+        return packed_output
 
 def rescale_for_rgb_image(images):
     # Rescale to 0-1 range
