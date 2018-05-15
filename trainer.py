@@ -15,7 +15,8 @@ class DCGANTrainer():
                  nb_image_to_gen=NB_IMAGE_TO_GENERATE, latent_input=LATENT_INPUT,
                  image_size=IMAGE_SIZE, weights_mean=WEIGHTS_MEAN, weights_std=WEIGHTS_STD,
                  model_complexity=COMPLEXITY, learning_rate=LEARNING_RATE, packing=PACKING,
-                 real_label_smoothing=REAL_LABEL_SMOOTHING, fake_label_smoothing=FAKE_LABEL_SMOOTHING):
+                 real_label_smoothing=REAL_LABEL_SMOOTHING, fake_label_smoothing=FAKE_LABEL_SMOOTHING,
+                 dropout_prob=DROPOUT_PROB):
 
         self.latent_input = latent_input
         self.nb_image_to_gen = nb_image_to_gen
@@ -29,7 +30,7 @@ class DCGANTrainer():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Models
-        self.generator = Generator(latent_input, model_complexity, weights_mean, weights_std).to(self.device)
+        self.generator = Generator(latent_input, model_complexity, dropout_prob, weights_mean, weights_std).to(self.device)
         self.discriminator = Discriminator(model_complexity, weights_mean, weights_std, packing).to(self.device)
 
         # Optimizers
@@ -88,9 +89,9 @@ class DCGANTrainer():
 
                 ### Train discriminator
                 loss_discriminator_total = self.train_discriminator(packed_real_data, 
-                                                packed_generated_batch,
-                                                label_real_smooth if self.real_label_smoothing else label_real,
-                                                label_fake_smooth if self.fake_label_smoothing else label_fake)
+                                                    packed_generated_batch,
+                                                    label_real_smooth if self.real_label_smoothing else label_real,
+                                                    label_fake_smooth if self.fake_label_smoothing else label_fake)
 
                 ### Train generator
                 loss_generator = self.train_generator(packed_generated_batch, label_real)

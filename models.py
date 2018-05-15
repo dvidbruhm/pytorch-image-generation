@@ -10,7 +10,7 @@ def weights_init_general(model, mean, std):
 
 
 class Generator(nn.Module):
-    def __init__(self, input_size, general_complexity, weights_mean, weights_std):
+    def __init__(self, input_size, general_complexity, dropout_prob, weights_mean, weights_std):
         super(Generator, self).__init__()
 
         self.loss = nn.BCELoss()
@@ -18,17 +18,20 @@ class Generator(nn.Module):
         self.layer1 = nn.Sequential(
             nn.ConvTranspose2d(input_size, 4 * 3 * general_complexity, 4, 1, 0, bias=False),
             nn.BatchNorm2d(4 * 3 * general_complexity),
-            nn.ReLU(True)
+            nn.ReLU(True),
+            nn.Dropout2d(dropout_prob)
         )
         self.layer2 = nn.Sequential(
             nn.ConvTranspose2d(4 * 3 * general_complexity, 2 * 3 * general_complexity, 4, 2, 1, bias=False),
             nn.BatchNorm2d(2 * 3 * general_complexity),
-            nn.ReLU(True)
+            nn.ReLU(True),
+            nn.Dropout2d(dropout_prob)
         )
         self.layer3 = nn.Sequential(
             nn.ConvTranspose2d(2 * 3 * general_complexity, 1 * 3 * general_complexity, 4, 2, 1, bias=False),
             nn.BatchNorm2d(1 * 3 * general_complexity),
-            nn.ReLU(True)
+            nn.ReLU(True),
+            nn.Dropout2d(dropout_prob)
         )
         self.layer4 = nn.Sequential(
             nn.ConvTranspose2d(1 * 3 * general_complexity, 1 * 3, 4, 2, 1, bias=False),
