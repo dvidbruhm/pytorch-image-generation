@@ -121,7 +121,6 @@ class DCGANTrainer():
         #loss_discriminator_real.backward()
 
         # Train on fake data
-        print(fake_data.shape)
         fake_prediction = self.discriminator(fake_data.detach()).squeeze()
         loss_discriminator_fake = self.discriminator.loss(fake_prediction, fake_label)
         #loss_discriminator_fake.backward()
