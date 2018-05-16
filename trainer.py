@@ -16,7 +16,7 @@ class DCGANTrainer():
                  image_size=IMAGE_SIZE, weights_mean=WEIGHTS_MEAN, weights_std=WEIGHTS_STD,
                  model_complexity=COMPLEXITY, learning_rate=LEARNING_RATE, packing=PACKING,
                  real_label_smoothing=REAL_LABEL_SMOOTHING, fake_label_smoothing=FAKE_LABEL_SMOOTHING,
-                 dropout_prob=DROPOUT_PROB):
+                 dropout_prob=DROPOUT_PROB, nb_discriminator_step=NB_DISCRIMINATOR_STEP):
 
         self.latent_input = latent_input
         self.nb_image_to_gen = nb_image_to_gen
@@ -25,6 +25,7 @@ class DCGANTrainer():
         self.packing = packing
         self.real_label_smoothing = real_label_smoothing
         self.fake_label_smoothing = fake_label_smoothing
+        self.nb_discriminator_step = nb_discriminator_step
         
         # Device (cpu or gpu)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -82,19 +83,15 @@ class DCGANTrainer():
                 label_real_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3 + 0.7
                 label_fake_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3
 
-                # Generate with noise
-                latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
-                generated_batch = self.generator(latent_noise)
-                packed_generated_batch = self.pack(generated_batch)
-
-                ### Train discriminator
-                loss_discriminator_total = self.train_discriminator(packed_real_data, 
-                                                    packed_generated_batch,
-                                                    label_real_smooth if self.real_label_smoothing else label_real,
-                                                    label_fake_smooth if self.fake_label_smoothing else label_fake)
+                ### Train discriminator multiple times
+                for i in range(self.nb_discriminator_step):
+                    loss_discriminator_total = self.train_discriminator(packed_real_data, 
+                                                        current_batch_size,
+                                                        label_real_smooth if self.real_label_smoothing else label_real,
+                                                        label_fake_smooth if self.fake_label_smoothing else label_fake)
 
                 ### Train generator
-                loss_generator = self.train_generator(packed_generated_batch, label_real)
+                loss_generator = self.train_generator(current_batch_size, label_real)
 
                 ### Keep track of losses
                 d_loss.append(loss_discriminator_total.item())
@@ -108,7 +105,13 @@ class DCGANTrainer():
         
         self.save_models("end")
 
-    def train_discriminator(self, real_data, fake_data, real_label, fake_label):
+    def train_discriminator(self, real_data, current_batch_size, real_label, fake_label):
+        
+        # Generate with noise
+        latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
+        generated_batch = self.generator(latent_noise)
+        fake_data = self.pack(generated_batch)
+
         ### Train discriminator
         self.discriminator.zero_grad()
 
@@ -130,7 +133,13 @@ class DCGANTrainer():
         return loss_discriminator_total
 
 
-    def train_generator(self, fake_data, real_label):
+    def train_generator(self, current_batch_size, real_label):
+
+        # Generate with noise
+        latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
+        generated_batch = self.generator(latent_noise)
+        fake_data = self.pack(generated_batch)
+
         ### Train generator
         self.generator.zero_grad()
 
