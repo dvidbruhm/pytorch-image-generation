@@ -100,7 +100,7 @@ class Generator64(nn.Module):
             nn.Dropout2d(dropout_prob)
         )
         self.layer2 = nn.Sequential(
-            nn.ConvTranspose2d(8 * 3 * general_complexity, 4 * 3 * general_complexity, 4, 1, 0, bias=False),
+            nn.ConvTranspose2d(8 * 3 * general_complexity, 4 * 3 * general_complexity, 4, 2, 1, bias=False),
             nn.BatchNorm2d(4 * 3 * general_complexity),
             nn.ReLU(True),
             nn.Dropout2d(dropout_prob)
@@ -129,6 +129,7 @@ class Generator64(nn.Module):
         output = self.layer2(output)
         output = self.layer3(output)
         output = self.layer4(output)
+        output = self.layer5(output)
         return output
 
     def weights_init(self, mean, std):
@@ -171,6 +172,7 @@ class Discriminator64(nn.Module):
         output = self.layer2(output)
         output = self.layer3(output)
         output = self.layer4(output)
+        output = self.layer5(output)
         return output
 
     def weights_init(self, mean, std):

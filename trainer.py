@@ -5,7 +5,7 @@ from hyperparameters import *
 
 from torchvision import datasets
 import torchvision.transforms as transforms
-from models import Generator, Discriminator
+from models import Generator64, Discriminator64
 
 import matplotlib.pyplot as plt
 import matplotlib.image as image
@@ -31,8 +31,8 @@ class DCGANTrainer():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Models
-        self.generator = Generator(latent_input, model_complexity, dropout_prob, weights_mean, weights_std).to(self.device)
-        self.discriminator = Discriminator(model_complexity, weights_mean, weights_std, packing).to(self.device)
+        self.generator = Generator64(latent_input, model_complexity, dropout_prob, weights_mean, weights_std).to(self.device)
+        self.discriminator = Discriminator64(model_complexity, weights_mean, weights_std, packing).to(self.device)
 
         # Optimizers
         self.D_optimiser = optim.Adam(self.discriminator.parameters(), lr = learning_rate, betas = (beta1, beta2))
@@ -121,6 +121,7 @@ class DCGANTrainer():
         #loss_discriminator_real.backward()
 
         # Train on fake data
+        print(fake_data.shape)
         fake_prediction = self.discriminator(fake_data.detach()).squeeze()
         loss_discriminator_fake = self.discriminator.loss(fake_prediction, fake_label)
         #loss_discriminator_fake.backward()
@@ -174,6 +175,10 @@ class DCGANTrainer():
         print("Saving models to : " + self.save_path)
         torch.save(self.discriminator.state_dict(), self.save_path + "discriminator_epoch_" + str(epoch) + ".pt")
         torch.save(self.generator.state_dict(), self.save_path + "generator_epoch_" + str(epoch) + ".pt")
+    
+    def save_parameters(self):
+        from shutil import copyfile
+        copyfile("hyperparameters.py", self.save_path + "hyperparameters.py")
 
     def pack(self, input):
         # Number of elements that need to be added to the input tensor
@@ -193,9 +198,8 @@ def rescale_for_rgb_image(images):
     max_val = images.data.max()
     return (images.data-min_val)/(max_val-min_val)
 
-
-
 if __name__ == "__main__":
     trainer = DCGANTrainer()
+    trainer.save_parameters()
     trainer.load_dataset()
     trainer.train()
