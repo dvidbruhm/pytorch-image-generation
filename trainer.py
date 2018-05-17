@@ -1,11 +1,13 @@
 import torch
 import torch.nn
 import torch.optim as optim
-from hyperparameters import *
 
 from torchvision import datasets
 import torchvision.transforms as transforms
-from models import Generator64, Discriminator64
+
+from hyperparameters import *
+from models import Generator32 as Generator, Discriminator32 as Discriminator
+from utils import *
 
 import matplotlib.pyplot as plt
 import matplotlib.image as image
@@ -31,8 +33,8 @@ class DCGANTrainer():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Models
-        self.generator = Generator64(latent_input, model_complexity, dropout_prob, weights_mean, weights_std).to(self.device)
-        self.discriminator = Discriminator64(model_complexity, weights_mean, weights_std, packing).to(self.device)
+        self.generator = Generator(latent_input, model_complexity, dropout_prob, weights_mean, weights_std).to(self.device)
+        self.discriminator = Discriminator(model_complexity, weights_mean, weights_std, packing).to(self.device)
 
         # Optimizers
         self.D_optimiser = optim.Adam(self.discriminator.parameters(), lr = learning_rate, betas = (beta1, beta2))
@@ -73,7 +75,7 @@ class DCGANTrainer():
                 real_batch_data = x.to(self.device)
                 current_batch_size = x.shape[0]
 
-                packed_real_data = self.pack(real_batch_data)
+                packed_real_data = pack(real_batch_data, self.packing)
                 packed_batch_size = packed_real_data.shape[0]
 
                 # labels
@@ -102,15 +104,16 @@ class DCGANTrainer():
 
             self.write_image(epoch)
             self.write_plots()
+
+        print("Training finished.")
         
-        self.save_models("end")
 
     def train_discriminator(self, real_data, current_batch_size, real_label, fake_label):
         
         # Generate with noise
         latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
         generated_batch = self.generator(latent_noise)
-        fake_data = self.pack(generated_batch)
+        fake_data = pack(generated_batch, self.packing)
 
         ### Train discriminator
         self.discriminator.zero_grad()
@@ -138,7 +141,7 @@ class DCGANTrainer():
         # Generate with noise
         latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
         generated_batch = self.generator(latent_noise)
-        fake_data = self.pack(generated_batch)
+        fake_data = pack(generated_batch, self.packing)
 
         ### Train generator
         self.generator.zero_grad()
@@ -170,35 +173,13 @@ class DCGANTrainer():
 
         plt.clf()
  
-    def save_models(self, epoch):
+    def save_models(self, prefix):
         print("Saving models to : " + self.save_path)
-        torch.save(self.discriminator.state_dict(), self.save_path + "discriminator_epoch_" + str(epoch) + ".pt")
-        torch.save(self.generator.state_dict(), self.save_path + "generator_epoch_" + str(epoch) + ".pt")
+        torch.save(self.discriminator.state_dict(), self.save_path + prefix + "_discriminator" + ".pt")
+        torch.save(self.generator.state_dict(), self.save_path + prefix + "_generator" + ".pt")
     
     def save_parameters(self):
         from shutil import copyfile
         copyfile("hyperparameters.py", self.save_path + "hyperparameters.py")
 
-    def pack(self, input):
-        # Number of elements that need to be added to the input tensor
-        nb_to_add = (self.packing - (input.shape[0] % self.packing)) % self.packing
 
-        # Add elements to the input if not a round number for the packing number
-        if nb_to_add > 0:
-            input = torch.cat((input, input[-nb_to_add:].view(nb_to_add, 3, input.shape[2], input.shape[3])))
-
-        # Reshape the tensor so it is packed
-        packed_output = input.view(-1, input.shape[1] * self.packing, input.shape[2], input.shape[3])
-        return packed_output
-
-def rescale_for_rgb_image(images):
-    # Rescale to 0-1 range
-    min_val = images.data.min()
-    max_val = images.data.max()
-    return (images.data-min_val)/(max_val-min_val)
-
-if __name__ == "__main__":
-    trainer = DCGANTrainer()
-    trainer.save_parameters()
-    trainer.load_dataset()
-    trainer.train()
