@@ -45,6 +45,10 @@ class DCGANTrainer():
 
         self.saved_latent_input = torch.randn((nb_image_to_gen, latent_input, 1, 1)).to(self.device)
 
+        # Create directory for the results if it doesn't already exists
+        import os
+        os.makedirs(self.save_path, exist_ok=True)
+
     def load_dataset(self, path_to_data=DATA_PATH):
         print("Loading dataset in : ", path_to_data)
 
