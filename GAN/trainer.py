@@ -9,8 +9,6 @@ from hyperparameters import *
 from models import Generator32 as Generator, Discriminator32 as Discriminator
 from utils import *
 
-import matplotlib.pyplot as plt
-import matplotlib.image as image
 
 class DCGANTrainer():
     def __init__(self, save_path=SAVE_PATH, beta1=BETA1, beta2=BETA2, 
@@ -106,8 +104,17 @@ class DCGANTrainer():
             self.discriminator_losses.append(torch.mean(torch.tensor(d_loss)))
             self.generator_losses.append(torch.mean(torch.tensor(g_loss)))
 
-            self.write_image(epoch)
-            self.write_plots()
+            # Generate images with generator using the same latent noise input every 
+            # epoch so we see the progression. Then change tensor size so it is adequate
+            # for format of matplotlib.
+            image_data = self.generator(self.saved_latent_input)        \
+                             .permute(0, 2, 3, 1)                       \
+                             .contiguous()                              \
+                             .view(self.image_size * self.nb_image_to_gen, self.image_size, 3)
+            
+            write_image(image_data, self.save_path, epoch)
+            write_loss_plot(self.generator_losses, "G loss", self.save_path, clear_plot=False)
+            write_loss_plot(self.discriminator_losses, "D loss", self.save_path, clear_plot=True)
 
         print("Training finished.")
         
@@ -159,31 +166,5 @@ class DCGANTrainer():
 
         return loss_generator
 
-    def write_image(self, epoch):
-        image_data = self.generator(self.saved_latent_input).permute(0, 2, 3, 1).contiguous().view(self.image_size * self.nb_image_to_gen, self.image_size, 3)
-        image_data = rescale_for_rgb_image(image_data)
-        image.imsave(self.save_path + "gen_epoch_" + str(epoch) + ".png", image_data.data)
-
-    def write_plots(self):
-        # Plot losses
-        plt.plot(self.generator_losses, label="G loss")
-        plt.plot(self.discriminator_losses, label="D loss")
-
-        plt.legend(loc="best")
-        plt.xlabel("Epoch")
-        plt.ylabel("Loss")
-
-        plt.savefig(self.save_path + "losses.png")
-
-        plt.clf()
- 
-    def save_models(self, prefix):
-        print("Saving models to : " + self.save_path)
-        torch.save(self.discriminator.state_dict(), self.save_path + prefix + "_discriminator" + ".pt")
-        torch.save(self.generator.state_dict(), self.save_path + prefix + "_generator" + ".pt")
-    
-    def save_parameters(self):
-        from shutil import copyfile
-        copyfile("hyperparameters.py", self.save_path + "hyperparameters.py")
 
 

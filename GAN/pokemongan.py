@@ -1,11 +1,12 @@
 from trainer import DCGANTrainer
+from utils import *
 
 def main():
     # Create trainer for the DCGAN
     trainer = DCGANTrainer()
 
     # Save the hyperparameters used for this training
-    trainer.save_parameters()
+    save_parameters(trainer.save_path)
 
     # Load the dataset
     trainer.load_dataset()
@@ -14,7 +15,8 @@ def main():
     trainer.train()
 
     # Save models
-    trainer.save_models("end")
+    save_model(trainer.generator, trainer.save_path, "generator_end")
+    save_model(trainer.discriminator, trainer.save_path, "discriminator_end")
 
 if __name__ == "__main__":
     main()

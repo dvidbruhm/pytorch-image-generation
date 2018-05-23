@@ -1,4 +1,6 @@
 data/
+data64/
+data128/
 raw_data/
 results/
 .vscode/
