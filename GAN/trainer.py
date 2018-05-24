@@ -19,11 +19,12 @@ class DCGANTrainer():
                  image_size=IMAGE_SIZE, weights_mean=WEIGHTS_MEAN, weights_std=WEIGHTS_STD,
                  model_complexity=COMPLEXITY, learning_rate=LEARNING_RATE, packing=PACKING,
                  real_label_smoothing=REAL_LABEL_SMOOTHING, fake_label_smoothing=FAKE_LABEL_SMOOTHING,
-                 dropout_prob=DROPOUT_PROB, nb_discriminator_step=NB_DISCRIMINATOR_STEP):
+                 dropout_prob=DROPOUT_PROB, nb_discriminator_step=NB_DISCRIMINATOR_STEP, image_channels=IMAGE_CHANNELS):
 
         self.latent_input = latent_input
         self.nb_image_to_gen = nb_image_to_gen
         self.image_size = image_size
+        self.image_channels = image_channels
         self.save_path = save_path
         self.packing = packing
         self.real_label_smoothing = real_label_smoothing
@@ -34,8 +35,8 @@ class DCGANTrainer():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Models
-        self.generator = Generator(latent_input, model_complexity, dropout_prob, weights_mean, weights_std).to(self.device)
-        self.discriminator = Discriminator(model_complexity, weights_mean, weights_std, packing).to(self.device)
+        self.generator = Generator(latent_input, model_complexity, dropout_prob, weights_mean, weights_std, image_channels).to(self.device)
+        self.discriminator = Discriminator(model_complexity, weights_mean, weights_std, packing, image_channels).to(self.device)
 
         # Optimizers
         self.D_optimiser = optim.Adam(self.discriminator.parameters(), lr = learning_rate, betas = (beta1, beta2))
@@ -65,6 +66,24 @@ class DCGANTrainer():
         
         self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=MINIBATCH_SIZE, shuffle=True, num_workers=2)
     
+    def test_load_mnist(self, root="./dataMnist"):
+        # Create transform
+        trans = transforms.Compose([
+                transforms.Resize(self.image_size),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        ])
+
+        # Load MNIST dataset
+        train_set = datasets.MNIST(root=root, train=True, transform=trans, download=True)
+
+        print('Number of images: ', len(train_set))
+        print('Sample image shape: ', train_set[0][0].shape, end='\n\n')
+        
+        self.train_loader = torch.utils.data.DataLoader(
+                            dataset=train_set,
+                            batch_size=MINIBATCH_SIZE,
+                            shuffle=True)
 
     def train(self, nb_epoch = NB_EPOCH):
         print("Start training.")
@@ -113,11 +132,11 @@ class DCGANTrainer():
             image_data = self.generator(self.saved_latent_input)        \
                              .permute(0, 2, 3, 1)                       \
                              .contiguous()                              \
-                             .view(self.image_size * self.nb_image_to_gen, self.image_size, 3)
+                             .view(self.image_size * self.nb_image_to_gen, self.image_size, self.image_channels)
             
             #utils.write_image(image_data, self.save_path, epoch)
 
-            utils.save_images(self.generator(self.saved_latent_input), self.save_path + "gen_", self.image_size, epoch)
+            utils.save_images(self.generator(self.saved_latent_input), self.save_path + "gen_", self.image_size, self.image_channels, epoch)
 
             utils.write_loss_plot(self.generator_losses, "G loss", self.save_path, clear_plot=False)
             utils.write_loss_plot(self.discriminator_losses, "D loss", self.save_path, clear_plot=True)

@@ -9,7 +9,8 @@ def main():
     save_parameters(trainer.save_path)
 
     # Load the dataset
-    trainer.load_dataset()
+    #trainer.load_dataset()
+    trainer.test_load_mnist()
 
     # Start the training process
     trainer.train()
