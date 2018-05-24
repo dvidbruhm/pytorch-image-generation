@@ -10,6 +10,7 @@ def main():
 
     # Load the dataset used for this training
     trainer.load_dataset()
+    #trainer.test_load_mnist()
 
     # Train
     trainer.train()

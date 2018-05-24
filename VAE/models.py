@@ -41,7 +41,7 @@ class VAE(nn.Module):
             nn.Linear(4 * general_complexity, 8 * general_complexity),
             nn.ReLU(True),
             nn.Linear(8 * general_complexity, input_size),
-            nn.Tanh()
+            nn.Sigmoid()
         )
 
         weights_init_general(self, weights_mean, weights_std)
@@ -68,22 +68,11 @@ class VAE(nn.Module):
     
     def loss(self, decoded_output, input, mu, logvar):
         loss = nn.BCELoss(size_average=False)
-        bce_loss = loss(decoded_output, input.view(-1, self.input_size))
+        reconstruction_loss = loss(decoded_output, input.view(-1, self.input_size))
 
         # Taken from: https://arxiv.org/abs/1312.6114
-        KL_Divergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        kl_div_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-        total_loss = bce_loss + KL_Divergence
+        total_loss = reconstruction_loss + kl_div_loss
 
         return total_loss
-
-    def loss_function(self, recon_x, x, mu, logvar):
-        BCE = F.binary_cross_entropy(recon_x, x.view(-1, self.input_size), size_average=False)
-
-        # see Appendix B from VAE paper:
-        # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-        # https://arxiv.org/abs/1312.6114
-        # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-
-        return BCE + KLD

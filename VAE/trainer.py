@@ -32,7 +32,7 @@ class VAETrainer():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Model
-        input_size = image_size * image_size * 3  # times 3 because of colors
+        input_size = image_size * image_size * self.image_channels  # times 3 because of colors
         self.VAE = VAE(input_size, model_complexity, mean, std, code_size).to(self.device)
 
         self.optimiser = optim.Adam(self.VAE.parameters(), lr = learning_rate)
@@ -63,7 +63,26 @@ class VAETrainer():
         
         self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
     
-    
+    def test_load_mnist(self, root="./dataMnist"):
+        # Create transform
+        trans = transforms.Compose([
+                transforms.Resize(self.image_size),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        ])
+
+        # Load MNIST dataset
+        train_set = datasets.MNIST(root=root, train=True, transform=trans, download=True)
+
+        print('Number of images: ', len(train_set))
+        print('Sample image shape: ', train_set[0][0].shape, end='\n\n')
+        
+        self.train_loader = torch.utils.data.DataLoader(
+                            dataset=train_set,
+                            batch_size=MINIBATCH_SIZE,
+                            shuffle=True)
+
+
     def train(self, nb_epoch=NB_EPOCH, batch_size=MINIBATCH_SIZE):
         self.VAE.train()
         for epoch in range(nb_epoch):
@@ -79,10 +98,9 @@ class VAETrainer():
                 self.VAE.zero_grad()
 
                 reconstructed_batch, mu, logvar = self.VAE(real_batch_data)
-                print(reconstructed_batch)
 
-                loss = self.VAE.loss_function(reconstructed_batch, real_batch_data, mu, logvar)
-                print(loss)
+                loss = self.VAE.loss(reconstructed_batch, real_batch_data, mu, logvar)
+
                 loss.backward()
                 self.optimiser.step()
 
@@ -93,7 +111,6 @@ class VAETrainer():
                     utils.save_images(reconstructed_batch, self.save_path + "decoded/", self.image_size, self.image_channels, epoch)
 
             self.losses.append(torch.mean(torch.tensor(current_loss)))
-            print(self.losses)
 
             utils.save_images(self.VAE.decode(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, self.image_channels, epoch)
 
