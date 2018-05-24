@@ -1,3 +1,8 @@
+import sys
+import os
+sys.path.append(os.path.abspath('../utils'))
+import utils
+
 import torch
 import torch.nn
 import torch.optim as optim
@@ -7,8 +12,6 @@ import torchvision.transforms as transforms
 
 from hyperparameters import *
 from models import Generator32 as Generator, Discriminator32 as Discriminator
-from utils import *
-
 
 class DCGANTrainer():
     def __init__(self, save_path=SAVE_PATH, beta1=BETA1, beta2=BETA2, 
@@ -77,7 +80,7 @@ class DCGANTrainer():
                 real_batch_data = x.to(self.device)
                 current_batch_size = x.shape[0]
 
-                packed_real_data = pack(real_batch_data, self.packing)
+                packed_real_data = utils.pack(real_batch_data, self.packing)
                 packed_batch_size = packed_real_data.shape[0]
 
                 # labels
@@ -112,9 +115,12 @@ class DCGANTrainer():
                              .contiguous()                              \
                              .view(self.image_size * self.nb_image_to_gen, self.image_size, 3)
             
-            write_image(image_data, self.save_path, epoch)
-            write_loss_plot(self.generator_losses, "G loss", self.save_path, clear_plot=False)
-            write_loss_plot(self.discriminator_losses, "D loss", self.save_path, clear_plot=True)
+            #utils.write_image(image_data, self.save_path, epoch)
+
+            utils.save_images(self.generator(self.saved_latent_input), self.save_path + "gen_", self.image_size, epoch)
+
+            utils.write_loss_plot(self.generator_losses, "G loss", self.save_path, clear_plot=False)
+            utils.write_loss_plot(self.discriminator_losses, "D loss", self.save_path, clear_plot=True)
 
         print("Training finished.")
         
@@ -124,7 +130,7 @@ class DCGANTrainer():
         # Generate with noise
         latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
         generated_batch = self.generator(latent_noise)
-        fake_data = pack(generated_batch, self.packing)
+        fake_data = utils.pack(generated_batch, self.packing)
 
         ### Train discriminator
         self.discriminator.zero_grad()
@@ -152,7 +158,7 @@ class DCGANTrainer():
         # Generate with noise
         latent_noise = torch.randn(current_batch_size, self.latent_input, 1, 1, device=self.device)
         generated_batch = self.generator(latent_noise)
-        fake_data = pack(generated_batch, self.packing)
+        fake_data = utils.pack(generated_batch, self.packing)
 
         ### Train generator
         self.generator.zero_grad()
