@@ -4,6 +4,7 @@ import torch.optim as optim
 from torchvision import datasets
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
+from torchvision.utils import make_grid
 
 from hyperparameters import *
 from utils import *
@@ -31,11 +32,14 @@ class AutoencoderTrainer():
 
         self.losses = []
 
-        self.saved_code_input = torch.randn((nb_image_to_gen, code_size)).to(self.device)
+        self.saved_code_input = torch.randn((self.nb_image_to_gen, code_size)).to(self.device)
 
         # Create directory for the results if it doesn't already exists
         import os
         os.makedirs(self.save_path, exist_ok=True)
+        os.makedirs(self.save_path + "encoded/", exist_ok=True)
+        os.makedirs(self.save_path + "decoded/", exist_ok=True)
+        os.makedirs(self.save_path + "saved_generated/", exist_ok=True)
     
     def load_dataset(self, path_to_data=DATA_PATH, batch_size=MINIBATCH_SIZE):
         print("Loading dataset in : ", path_to_data)
@@ -67,8 +71,11 @@ class AutoencoderTrainer():
                 self.autoencoder.zero_grad()
 
                 output = self.autoencoder(real_batch_data)
-                #save_image(real_batch_data[0].view(3, self.image_size, self.image_size), self.save_path + "data_epoch_" + str(epoch) + ".png")
-                #save_image(output[0].view(3, self.image_size, self.image_size), self.save_path + "gen_epoch_" + str(epoch) + ".png")
+
+                if batch_id == len(self.train_loader) - 2:
+                    save_images(real_batch_data, self.save_path + "encoded/", self.image_size, epoch)
+                    save_images(output, self.save_path + "decoded/", self.image_size, epoch)
+
                 loss = self.autoencoder.loss(output, real_batch_data)
 
                 loss.backward()
@@ -78,10 +85,7 @@ class AutoencoderTrainer():
             
             self.losses.append(torch.mean(torch.tensor(current_loss)))
 
-            image_data = self.autoencoder.generate(self.saved_code_input)   \
-                             .view(3, self.image_size * self.nb_image_to_gen, self.image_size)
-
-            save_image(image_data, self.save_path + "gen_epoch_" + str(epoch) + ".png")
+            save_images(self.autoencoder.generate(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, epoch)
 
             write_loss_plot(self.losses, "loss", self.save_path)
 

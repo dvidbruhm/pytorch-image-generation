@@ -1,12 +1,8 @@
 import torch
 import matplotlib.pyplot as plt
-import matplotlib.image as image
 
-# Function that rescales data in the 0-1 range
-def rescale_for_rgb_image(images):
-    min_val = images.data.min()
-    max_val = images.data.max()
-    return (images.data-min_val)/(max_val-min_val)
+from torchvision.utils import save_image
+from torchvision.utils import make_grid
 
 # Function that takes a minibatch (input) and a packing number (packing)
 # and outputs the packed minibatch. 
@@ -22,10 +18,6 @@ def pack(input, packing):
     # Reshape the tensor so it is packed
     packed_output = input.view(-1, input.shape[1] * packing, input.shape[2], input.shape[3])
     return packed_output
-
-def write_image(image_data, save_path, epoch):
-    image_data = rescale_for_rgb_image(image_data)
-    image.imsave(save_path + "gen_epoch_" + str(epoch) + ".png", image_data.data)
 
 def write_loss_plot(loss, loss_label, save_path, clear_plot=True):
     # Plot losses
@@ -47,3 +39,10 @@ def save_model(model, save_path, name):
 def save_parameters(save_path, file_name="hyperparameters.py"):
     from shutil import copyfile
     copyfile("hyperparameters.py", save_path + "" + file_name)
+
+def save_images(data, save_path, image_size, epoch):
+    image_list = []
+    for i in range(len(data)):
+        image_data = data[i].view(3, image_size, image_size)
+        image_list.append(image_data)
+    save_image(make_grid(image_list), save_path + "epoch_" + str(epoch) + ".png")
