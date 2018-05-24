@@ -78,8 +78,8 @@ class AutoencoderTrainer():
                 output = self.autoencoder(real_batch_data)
 
                 if batch_id == len(self.train_loader) - 2:
-                    utils.save_images(real_batch_data, self.save_path + "encoded/", self.image_size, epoch)
-                    utils.save_images(output, self.save_path + "decoded/", self.image_size, epoch)
+                    utils.save_images(real_batch_data, self.save_path + "encoded/", self.image_size, 3, epoch)
+                    utils.save_images(output, self.save_path + "decoded/", self.image_size, 3, epoch)
 
                 loss = self.autoencoder.loss(output, real_batch_data)
 
@@ -90,7 +90,7 @@ class AutoencoderTrainer():
             
             self.losses.append(torch.mean(torch.tensor(current_loss)))
 
-            utils.save_images(self.autoencoder.generate(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, epoch)
+            utils.save_images(self.autoencoder.generate(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, 3, epoch)
 
             utils.write_loss_plot(self.losses, "loss", self.save_path)
 
