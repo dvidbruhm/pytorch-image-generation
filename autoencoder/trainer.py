@@ -20,11 +20,13 @@ class AutoencoderTrainer():
 
     def __init__(self, save_path=SAVE_PATH, nb_image_to_gen=NB_IMAGE_TO_GENERATE,
                  code_size=CODE_SIZE, image_size=IMAGE_SIZE, model_complexity=COMPLEXITY, 
-                 mean=WEIGHTS_MEAN, std=WEIGHTS_STD, learning_rate=LEARNING_RATE):
+                 mean=WEIGHTS_MEAN, std=WEIGHTS_STD, learning_rate=LEARNING_RATE,
+                 image_channels=IMAGE_CHANNELS):
 
         self.save_path = save_path
         self.nb_image_to_gen = nb_image_to_gen
         self.image_size = image_size
+        self.image_channels = image_channels
                 
         # Device (cpu or gpu)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -78,8 +80,8 @@ class AutoencoderTrainer():
                 output = self.autoencoder(real_batch_data)
 
                 if batch_id == len(self.train_loader) - 2:
-                    utils.save_images(real_batch_data, self.save_path + "encoded/", self.image_size, 3, epoch)
-                    utils.save_images(output, self.save_path + "decoded/", self.image_size, 3, epoch)
+                    utils.save_images(real_batch_data, self.save_path + "encoded/", self.image_size, self.image_channels, epoch)
+                    utils.save_images(output, self.save_path + "decoded/", self.image_size, self.image_channels, epoch)
 
                 loss = self.autoencoder.loss(output, real_batch_data)
 
@@ -90,7 +92,7 @@ class AutoencoderTrainer():
             
             self.losses.append(torch.mean(torch.tensor(current_loss)))
 
-            utils.save_images(self.autoencoder.generate(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, 3, epoch)
+            utils.save_images(self.autoencoder.generate(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, self.image_channels, epoch)
 
             utils.write_loss_plot(self.losses, "loss", self.save_path)
 
