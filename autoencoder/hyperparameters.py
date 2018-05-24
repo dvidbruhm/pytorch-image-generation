@@ -1,7 +1,7 @@
 SAVE_PATH = "results/"
 DATA_PATH = "../data/"
 
-NB_EPOCH = 200
+NB_EPOCH = 2
 
 COMPLEXITY = 512
 MINIBATCH_SIZE = 64

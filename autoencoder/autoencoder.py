@@ -1,5 +1,4 @@
 from trainer import AutoencoderTrainer
-from utils import *
 
 def main():
 
@@ -7,7 +6,7 @@ def main():
     trainer = AutoencoderTrainer()
 
     # Save the hyperparameters used for this training
-    save_parameters(trainer.save_path)
+    trainer.save_parameters()
 
     # Load the dataset used for this training
     trainer.load_dataset()
@@ -16,7 +15,7 @@ def main():
     trainer.train()
 
     # Save the trained autoencoder
-    save_model(trainer.autoencoder, trainer.save_path, "autoencoder_end")
+    trainer.save_models()
 
 
 if __name__ == "__main__":

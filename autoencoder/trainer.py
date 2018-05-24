@@ -1,3 +1,9 @@
+import sys
+import os
+sys.path.append(os.path.abspath('../utils'))
+
+import utils
+
 import torch
 import torch.optim as optim
 
@@ -7,7 +13,6 @@ from torchvision.utils import save_image
 from torchvision.utils import make_grid
 
 from hyperparameters import *
-from utils import *
 from models import Autoencoder
 
 
@@ -73,8 +78,8 @@ class AutoencoderTrainer():
                 output = self.autoencoder(real_batch_data)
 
                 if batch_id == len(self.train_loader) - 2:
-                    save_images(real_batch_data, self.save_path + "encoded/", self.image_size, epoch)
-                    save_images(output, self.save_path + "decoded/", self.image_size, epoch)
+                    utils.save_images(real_batch_data, self.save_path + "encoded/", self.image_size, epoch)
+                    utils.save_images(output, self.save_path + "decoded/", self.image_size, epoch)
 
                 loss = self.autoencoder.loss(output, real_batch_data)
 
@@ -85,8 +90,12 @@ class AutoencoderTrainer():
             
             self.losses.append(torch.mean(torch.tensor(current_loss)))
 
-            save_images(self.autoencoder.generate(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, epoch)
+            utils.save_images(self.autoencoder.generate(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, epoch)
 
-            write_loss_plot(self.losses, "loss", self.save_path)
+            utils.write_loss_plot(self.losses, "loss", self.save_path)
 
-                
+    def save_models(self):
+        utils.save_model(self.autoencoder, self.save_path, "autoencoder_end")
+    
+    def save_parameters(self):
+        utils.save_parameters(self.save_path)
