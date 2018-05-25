@@ -18,11 +18,7 @@ class VAE(nn.Module):
         self.input_size = input_size
 
         self.encoder = nn.Sequential(
-            nn.Linear(input_size, 8 * general_complexity),
-            nn.ReLU(True),
-            nn.Linear(8 * general_complexity, 4 * general_complexity),
-            nn.ReLU(True),
-            nn.Linear(4 * general_complexity, 2 * general_complexity),
+            nn.Linear(input_size, 2 * general_complexity),
             nn.ReLU(True),
             nn.Linear(2 * general_complexity, 1 * general_complexity),
             nn.ReLU(True)
@@ -36,11 +32,7 @@ class VAE(nn.Module):
             nn.ReLU(True),
             nn.Linear(1 * general_complexity, 2 * general_complexity),
             nn.ReLU(True),
-            nn.Linear(2 * general_complexity, 4 * general_complexity),
-            nn.ReLU(True),
-            nn.Linear(4 * general_complexity, 8 * general_complexity),
-            nn.ReLU(True),
-            nn.Linear(8 * general_complexity, input_size),
+            nn.Linear(2 * general_complexity, input_size),
             nn.Sigmoid()
         )
 
@@ -50,11 +42,13 @@ class VAE(nn.Module):
         output = self.encoder(input)
         return self.layer_split_1(output), self.layer_split_2(output)
     
-    def reparametrize(self, mu, logvar):
-        std = torch.exp(0.5 * logvar)
-        eps = torch.randn_like(std)
-        output = eps.mul(std).add_(mu)
-        return output
+    def reparameterize(self, mu, logvar):
+        if self.training:
+            std = torch.exp(0.5*logvar)
+            eps = torch.randn_like(std)
+            return eps.mul(std).add_(mu)
+        else:
+            return mu
 
     def decode(self, latent_vector):
         output = self.decoder(latent_vector)
@@ -62,14 +56,13 @@ class VAE(nn.Module):
 
     def forward(self, input):
         mu, logvar = self.encode(input)
-        latent_vector = self.reparametrize(mu, logvar)
+        latent_vector = self.reparameterize(mu, logvar)
         output = self.decode(latent_vector), mu, logvar
         return output
     
     def loss(self, decoded_output, input, mu, logvar):
         loss = nn.BCELoss(size_average=False)
         reconstruction_loss = loss(decoded_output, input.view(-1, self.input_size))
-
         # Taken from: https://arxiv.org/abs/1312.6114
         kl_div_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 

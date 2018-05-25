@@ -13,7 +13,7 @@ from torchvision.utils import save_image
 from torchvision.utils import make_grid
 
 from hyperparameters import *
-from models import VAE
+from models import VAE as VAE
 
 
 class VAETrainer():

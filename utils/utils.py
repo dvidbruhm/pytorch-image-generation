@@ -45,4 +45,4 @@ def save_images(data, save_path, image_size, image_channels, epoch):
     for i in range(len(data)):
         image_data = data[i].view(image_channels, image_size, image_size)
         image_list.append(image_data)
-    save_image(make_grid(image_list, normalize=True, range=(0,1)), save_path + "epoch_" + str(epoch) + ".png")
+    save_image(make_grid(image_list), save_path + "epoch_" + str(epoch) + ".png")
