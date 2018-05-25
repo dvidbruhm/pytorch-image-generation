@@ -170,5 +170,11 @@ class DCGANTrainer():
 
         return loss_generator
 
+    def save_models(self):
+        utils.save_model(self.generator, self.save_path, "generator_end")
+        utils.save_model(self.discriminator, self.save_path, "discriminator_end")
+    
+    def save_parameters(self):
+        utils.save_parameters(self.save_path)
 
 
