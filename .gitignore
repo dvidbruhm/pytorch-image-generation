@@ -1,5 +1,4 @@
-data*/
-raw_data/
+*data*/
 results/
 .vscode/
 __pycache__/
