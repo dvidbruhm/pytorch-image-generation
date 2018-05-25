@@ -60,7 +60,7 @@ class DCGANTrainer():
         elif name == "CIFAR10":
             self.train_loader = utils.load_cifar_10(self.image_size, self.batch_size, root="../CIFAR10_data")
         elif name == "POKEMON":
-            pass
+            self.train_loader = utils.load_pokemon(self.image_size, self.batch_size, root="../POKEMON_data")
         else:
             raise NameError("The only supported datasets are MNIST, CIFAR10 and POKEMON.")
 
