@@ -1,4 +1,5 @@
 from trainer import AutoencoderTrainer
+from hyperparameters import DATASET_NAME
 
 def main():
 
@@ -9,7 +10,7 @@ def main():
     trainer.save_parameters()
 
     # Load the dataset used for this training
-    trainer.load_dataset()
+    trainer.load_dataset(DATASET_NAME)
 
     # Train
     trainer.train()

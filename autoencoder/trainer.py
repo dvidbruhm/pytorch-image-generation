@@ -21,8 +21,9 @@ class AutoencoderTrainer():
     def __init__(self, save_path=SAVE_PATH, nb_image_to_gen=NB_IMAGE_TO_GENERATE,
                  code_size=CODE_SIZE, image_size=IMAGE_SIZE, model_complexity=COMPLEXITY, 
                  mean=WEIGHTS_MEAN, std=WEIGHTS_STD, learning_rate=LEARNING_RATE,
-                 image_channels=IMAGE_CHANNELS):
+                 image_channels=IMAGE_CHANNELS, batch_size=MINIBATCH_SIZE):
 
+        self.batch_size = batch_size
         self.save_path = save_path
         self.nb_image_to_gen = nb_image_to_gen
         self.image_size = image_size
@@ -48,22 +49,17 @@ class AutoencoderTrainer():
         os.makedirs(self.save_path + "decoded/", exist_ok=True)
         os.makedirs(self.save_path + "saved_generated/", exist_ok=True)
     
-    def load_dataset(self, path_to_data=DATA_PATH, batch_size=MINIBATCH_SIZE):
-        print("Loading dataset in : ", path_to_data)
+    def load_dataset(self, name):
+        print("Loading ", name, " dataset.")
+        if name == "MNIST":
+            self.train_loader = utils.load_mnist(self.image_size, self.batch_size, root="../MNIST_data")
+        elif name == "CIFAR10":
+            self.train_loader = utils.load_cifar_10(self.image_size, self.batch_size, root="../CIFAR10_data")
+        elif name == "POKEMON":
+            self.train_loader = utils.load_pokemon(self.image_size, self.batch_size, root="../POKEMON_data")
+        else:
+            raise NameError("The only supported datasets are MNIST, CIFAR10 and POKEMON.")
 
-        transform = transforms.Compose([
-                        transforms.ToTensor(),
-                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        ])
-
-        train_set = datasets.ImageFolder(root=path_to_data, transform=transform)
-
-        print('Number of images: ', len(train_set))
-        print('Sample image shape: ', train_set[0][0].shape, end='\n\n')
-        
-        self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
-    
-    
     def train(self, nb_epoch=NB_EPOCH, batch_size=MINIBATCH_SIZE):
         for epoch in range(nb_epoch):
 
