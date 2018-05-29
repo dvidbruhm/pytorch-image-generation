@@ -1,6 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.abspath('../utils'))
 import utils
 
 import torch
@@ -13,7 +10,7 @@ import torchvision.transforms as transforms
 from hyperparameters import *
 from models import Generator32 as Generator, Discriminator32 as Discriminator
 
-class DCGANTrainer():
+class LSGANTrainer():
     def __init__(self, save_path=SAVE_PATH, beta1=BETA1, beta2=BETA2, 
                  nb_image_to_gen=NB_IMAGE_TO_GENERATE, latent_input=LATENT_INPUT,
                  image_size=IMAGE_SIZE, weights_mean=WEIGHTS_MEAN, weights_std=WEIGHTS_STD,
@@ -47,7 +44,7 @@ class DCGANTrainer():
         self.generator_losses = []
         self.discriminator_losses = []
 
-        self.saved_latent_input = torch.randn((nb_image_to_gen, latent_input, 1, 1)).to(self.device)
+        self.saved_latent_input = torch.randn((nb_image_to_gen * nb_image_to_gen, latent_input, 1, 1)).to(self.device)
 
         # Create directory for the results if it doesn't already exists
         import os
@@ -105,24 +102,13 @@ class DCGANTrainer():
             self.discriminator_losses.append(torch.mean(torch.tensor(d_loss)))
             self.generator_losses.append(torch.mean(torch.tensor(g_loss)))
 
-            # Generate images with generator using the same latent noise input every 
-            # epoch so we see the progression. Then change tensor size so it is adequate
-            # for format of matplotlib.
-            image_data = self.generator(self.saved_latent_input)        \
-                             .permute(0, 2, 3, 1)                       \
-                             .contiguous()                              \
-                             .view(self.image_size * self.nb_image_to_gen, self.image_size, self.image_channels)
-            
-            #utils.write_image(image_data, self.save_path, epoch)
-
-            utils.save_images(self.generator(self.saved_latent_input), self.save_path + "gen_", self.image_size, self.image_channels, epoch)
+            utils.save_images(self.generator(self.saved_latent_input), self.save_path + "gen_", self.image_size, self.image_channels, self.nb_image_to_gen, epoch)
 
             utils.write_loss_plot(self.generator_losses, "G loss", self.save_path, clear_plot=False)
             utils.write_loss_plot(self.discriminator_losses, "D loss", self.save_path, clear_plot=True)
 
         print("Training finished.")
         
-
     def train_discriminator(self, real_data, current_batch_size, real_label, fake_label):
         
         # Generate with noise

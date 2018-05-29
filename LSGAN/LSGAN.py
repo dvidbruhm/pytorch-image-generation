@@ -1,10 +1,13 @@
-from trainer import DCGANTrainer
-import utils
+import sys
+import os
+sys.path.append(os.path.abspath('../utils'))
+
+from trainer import LSGANTrainer as Trainer
 from hyperparameters import DATASET_NAME
 
 def main():
-    # Create trainer for the DCGAN
-    trainer = DCGANTrainer()
+    # Create trainer for the LSGAN
+    trainer = Trainer()
 
     # Save the hyperparameters used for this training
     trainer.save_parameters()
