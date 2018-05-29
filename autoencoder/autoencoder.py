@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.abspath('../utils'))
+
 from trainer import AutoencoderTrainer
 from hyperparameters import DATASET_NAME
 
