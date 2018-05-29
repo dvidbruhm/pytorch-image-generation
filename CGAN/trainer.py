@@ -49,7 +49,7 @@ class CGANTrainer():
         self.saved_latent_input = torch.randn((nb_image_to_gen * nb_image_to_gen, latent_input, 1, 1)).to(self.device)
         self.saved_label = torch.zeros((nb_image_to_gen * nb_image_to_gen, num_labels))
         for i in range(nb_image_to_gen):
-            self.saved_label[i*nb_image_to_gen:i*nb_image_to_gen+nb_image_to_gen][i] = 1
+            self.saved_label[i*nb_image_to_gen:i*nb_image_to_gen+nb_image_to_gen,i] = 1
 
         # Create directory for the results if it doesn't already exists
         import os
