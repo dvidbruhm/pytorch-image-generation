@@ -57,13 +57,13 @@ def rescale_for_rgb_plot(images):
     max_val = images.data.max()
     return (images.data-min_val)/(max_val-min_val)
 
-def save_images(data, save_path, image_size, image_channels, epoch):
+def save_images(data, save_path, image_size, image_channels, num_row, epoch):
     image_list = []
     for i in range(len(data)):
         image_data = data[i].view(image_channels, image_size, image_size)
         image_data = rescale_for_rgb_plot(image_data)
         image_list.append(image_data)
-    save_image(make_grid(image_list), save_path + "epoch_" + str(epoch) + ".png")
+    save_image(make_grid(image_list, nrow=num_row), save_path + "epoch_" + str(epoch) + ".png")
 
 def load_cifar_10(image_size=32, batch_size=128, root="../CIFAR10_data"):
     # Create transform
