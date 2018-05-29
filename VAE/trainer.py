@@ -1,7 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.abspath('../utils'))
-
 import utils
 
 import torch
@@ -33,14 +29,14 @@ class VAETrainer():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Model
-        input_size = image_size * image_size * self.image_channels  # times 3 because of colors
+        input_size = image_size * image_size * self.image_channels 
         self.VAE = VAE(input_size, model_complexity, mean, std, code_size).to(self.device)
 
         self.optimiser = optim.Adam(self.VAE.parameters(), lr = learning_rate)
 
         self.losses = []
 
-        self.saved_code_input = torch.randn((self.nb_image_to_gen, code_size)).to(self.device)
+        self.saved_code_input = torch.randn((self.nb_image_to_gen * self.nb_image_to_gen, code_size)).to(self.device)
 
         # Create directory for the results if it doesn't already exists
         import os
@@ -84,12 +80,12 @@ class VAETrainer():
                 current_loss.append(loss.item())
 
                 if batch_id == len(self.train_loader) - 2:
-                    utils.save_images(real_batch_data, self.save_path + "encoded/", self.image_size, self.image_channels, epoch)
-                    utils.save_images(reconstructed_batch, self.save_path + "decoded/", self.image_size, self.image_channels, epoch)
+                    utils.save_images(real_batch_data, self.save_path + "encoded/", self.image_size, self.image_channels, self.nb_image_to_gen, epoch)
+                    utils.save_images(reconstructed_batch, self.save_path + "decoded/", self.image_size, self.image_channels, self.nb_image_to_gen, epoch)
 
             self.losses.append(torch.mean(torch.tensor(current_loss)))
 
-            utils.save_images(self.VAE.decode(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, self.image_channels, epoch)
+            utils.save_images(self.VAE.decode(self.saved_code_input), self.save_path + "saved_generated/", self.image_size, self.image_channels, self.nb_image_to_gen, epoch)
 
             utils.write_loss_plot(self.losses, "loss", self.save_path)
 
