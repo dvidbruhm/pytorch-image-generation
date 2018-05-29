@@ -3,7 +3,6 @@ import os
 sys.path.append(os.path.abspath('../utils'))
 
 from trainer import DCGANTrainer
-import utils
 from hyperparameters import DATASET_NAME
 
 def main():
