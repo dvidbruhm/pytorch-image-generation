@@ -22,6 +22,13 @@ def pack(input, packing):
     packed_output = input.view(-1, input.shape[1] * packing, input.shape[2], input.shape[3])
     return packed_output
 
+# Initialise weights of the model with certain mean and standard deviation
+def weights_init_general(model, mean, std):
+    for m in model._modules:
+        if isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Conv2d):
+            model._modules[m].weight.data.normal_(mean, std)
+            model._modules[m].bias.data.zero_()
+
 def write_loss_plot(loss, loss_label, save_path, clear_plot=True):
     # Plot losses
     plt.plot(loss, label=loss_label)
