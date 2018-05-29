@@ -1,7 +1,6 @@
 import sys
 import os
 sys.path.append(os.path.abspath('../utils'))
-import utils
 
 from trainer import CGANTrainer as Trainer
 from hyperparameters import DATASET_NAME
