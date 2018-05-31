@@ -73,9 +73,28 @@ def load_dataset(name, image_size, batch_size):
         return load_cifar_10(image_size, batch_size, root="../CIFAR10_data")
     elif name == "POKEMON":
         return load_pokemon(image_size, batch_size, root="../POKEMON_data")
+    elif name == "EMOJI":
+        return load_emoji(image_size, batch_size, root="../EMOJI_data")
     else:
         raise NameError("The only supported datasets are MNIST, CIFAR10 and POKEMON.")
 
+def load_emoji(image_size=32, batch_size=64, root="../EMOJI_data"):
+
+    transform = transforms.Compose([
+                    transforms.Resize(image_size),
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
+    train_set = datasets.ImageFolder(root=root, transform=transform)
+
+    print('Number of images: ', len(train_set))
+    print('Sample image shape: ', train_set[0][0].shape, end='\n\n')
+    
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
+
+    return train_loader
+        
 
 def load_cifar_10(image_size=32, batch_size=128, root="../CIFAR10_data"):
     # Create transform
@@ -122,6 +141,7 @@ def load_mnist(image_size=32, batch_size=128, root="../MNIST_data"):
 def load_pokemon(image_size=32, batch_size=128, root="../pokemon_data"):
 
     transform = transforms.Compose([
+                    transforms.Resize(image_size),
                     transforms.ToTensor(),
                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
