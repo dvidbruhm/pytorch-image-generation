@@ -52,16 +52,8 @@ class DCGANTrainer():
         os.makedirs(self.save_path, exist_ok=True)
 
     def load_dataset(self, name):
-        print("Loading ", name, " dataset.")
-        if name == "MNIST":
-            self.train_loader = utils.load_mnist(self.image_size, self.batch_size, root="../MNIST_data")
-        elif name == "CIFAR10":
-            self.train_loader = utils.load_cifar_10(self.image_size, self.batch_size, root="../CIFAR10_data")
-        elif name == "POKEMON":
-            self.train_loader = utils.load_pokemon(self.image_size, self.batch_size, root="../POKEMON_data")
-        else:
-            raise NameError("The only supported datasets are MNIST, CIFAR10 and POKEMON.")
-
+        self.train_loader = utils.load_dataset(name, self.image_size, self.batch_size)
+        
     def train(self, nb_epoch = NB_EPOCH):
         print("Start training.")
 
