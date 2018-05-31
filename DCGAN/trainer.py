@@ -64,7 +64,6 @@ class DCGANTrainer():
             d_loss = []
 
             for batch_id, (x, target) in enumerate(self.train_loader):
-                print(x.shape)
                 real_batch_data = x.to(self.device)
                 current_batch_size = x.shape[0]
 
