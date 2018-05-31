@@ -64,7 +64,7 @@ class DCGANTrainer():
             d_loss = []
 
             for batch_id, (x, target) in enumerate(self.train_loader):
-
+                print(x.shape)
                 real_batch_data = x.to(self.device)
                 current_batch_size = x.shape[0]
 
@@ -72,11 +72,11 @@ class DCGANTrainer():
                 packed_batch_size = packed_real_data.shape[0]
 
                 # labels
-                label_real = torch.full((packed_batch_size,), 1, device=self.device)
-                label_fake = torch.full((packed_batch_size,), 0, device=self.device)
+                label_real = torch.full((packed_batch_size,), 1, device=self.device).squeeze()
+                label_fake = torch.full((packed_batch_size,), 0, device=self.device).squeeze()
                 # smoothed real labels between 0.7 and 1, and fake between 0 and 0.3
-                label_real_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3 + 0.7
-                label_fake_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3
+                label_real_smooth = torch.rand((packed_batch_size,)).to(self.device).squeeze() * 0.3 + 0.7
+                label_fake_smooth = torch.rand((packed_batch_size,)).to(self.device).squeeze() * 0.3
 
                 temp_discriminator_loss = []
                 temp_generator_loss = []
@@ -134,7 +134,6 @@ class DCGANTrainer():
         loss_discriminator_total = loss_discriminator_real + loss_discriminator_fake
         loss_discriminator_total.backward()
         self.D_optimiser.step()
-
         return loss_discriminator_total
 
 
