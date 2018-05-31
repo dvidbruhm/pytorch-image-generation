@@ -65,6 +65,18 @@ def save_images(data, save_path, image_size, image_channels, num_row, epoch):
         image_list.append(image_data)
     save_image(make_grid(image_list, nrow=num_row), save_path + "epoch_" + str(epoch) + ".png")
 
+def load_dataset(name, image_size, batch_size):
+    print("Loading ", name, " dataset.")
+    if name == "MNIST":
+        return load_mnist(image_size, batch_size, root="../MNIST_data")
+    elif name == "CIFAR10":
+        return load_cifar_10(image_size, batch_size, root="../CIFAR10_data")
+    elif name == "POKEMON":
+        return load_pokemon(image_size, batch_size, root="../POKEMON_data")
+    else:
+        raise NameError("The only supported datasets are MNIST, CIFAR10 and POKEMON.")
+
+
 def load_cifar_10(image_size=32, batch_size=128, root="../CIFAR10_data"):
     # Create transform
     trans = transforms.Compose([
