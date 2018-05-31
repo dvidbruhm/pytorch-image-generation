@@ -17,7 +17,7 @@ class DCGANTrainer():
                  model_complexity=COMPLEXITY, learning_rate=LEARNING_RATE, packing=PACKING,
                  real_label_smoothing=REAL_LABEL_SMOOTHING, fake_label_smoothing=FAKE_LABEL_SMOOTHING,
                  dropout_prob=DROPOUT_PROB, nb_discriminator_step=NB_DISCRIMINATOR_STEP, 
-                 image_channels=IMAGE_CHANNELS, batch_size=MINIBATCH_SIZE):
+                 image_channels=IMAGE_CHANNELS, batch_size=MINIBATCH_SIZE, nb_generator_step=NB_GENERATOR_STEP):
 
         self.batch_size = batch_size
         self.latent_input = latent_input
@@ -29,6 +29,7 @@ class DCGANTrainer():
         self.real_label_smoothing = real_label_smoothing
         self.fake_label_smoothing = fake_label_smoothing
         self.nb_discriminator_step = nb_discriminator_step
+        self.nb_generator_step = nb_generator_step
         
         # Device (cpu or gpu)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -85,19 +86,26 @@ class DCGANTrainer():
                 label_real_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3 + 0.7
                 label_fake_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3
 
+                temp_discriminator_loss = []
+                temp_generator_loss = []
+                
                 ### Train discriminator multiple times
                 for i in range(self.nb_discriminator_step):
                     loss_discriminator_total = self.train_discriminator(packed_real_data, 
                                                         current_batch_size,
                                                         label_real_smooth if self.real_label_smoothing else label_real,
                                                         label_fake_smooth if self.fake_label_smoothing else label_fake)
+                                                        
+                    temp_discriminator_loss.append(loss_discriminator_total.item())
 
-                ### Train generator
-                loss_generator = self.train_generator(current_batch_size, label_real)
+                ### Train generator multiple times
+                for i in range(self.nb_generator_step):
+                    loss_generator_total = self.train_generator(current_batch_size, label_real)
+                    temp_generator_loss.append(loss_generator_total.item())
 
                 ### Keep track of losses
-                d_loss.append(loss_discriminator_total.item())
-                g_loss.append(loss_generator.item())
+                d_loss.append(torch.mean(torch.tensor(temp_discriminator_loss)))
+                g_loss.append(torch.mean(torch.tensor(temp_generator_loss)))
 
             self.discriminator_losses.append(torch.mean(torch.tensor(d_loss)))
             self.generator_losses.append(torch.mean(torch.tensor(g_loss)))
