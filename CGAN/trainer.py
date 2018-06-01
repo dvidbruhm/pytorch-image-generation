@@ -47,7 +47,7 @@ class CGANTrainer():
         self.discriminator_losses = []
 
         self.saved_latent_input = torch.randn((nb_image_to_gen * nb_image_to_gen, latent_input, 1, 1)).to(self.device)
-        self.saved_label = torch.zeros((nb_image_to_gen * nb_image_to_gen, num_labels))
+        self.saved_label = torch.zeros((nb_image_to_gen * nb_image_to_gen, num_labels)).to(self.device)
         for i in range(nb_image_to_gen):
             self.saved_label[i*nb_image_to_gen:i*nb_image_to_gen+nb_image_to_gen,i] = 1
 
@@ -79,7 +79,7 @@ class CGANTrainer():
 
                 real_batch_data = x.to(self.device)
                 current_batch_size = x.shape[0]
-                one_hot_label = torch.zeros(current_batch_size, self.num_labels).scatter_(1, target.unsqueeze(1), 1)
+                one_hot_label = torch.zeros(current_batch_size, self.num_labels).scatter_(1, target.unsqueeze(1), 1).to(self.device)
 
                 packed_real_data = utils.pack(real_batch_data, self.packing)
                 packed_batch_size = packed_real_data.shape[0]
