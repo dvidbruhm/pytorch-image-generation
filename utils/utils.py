@@ -65,7 +65,57 @@ def save_images(data, save_path, image_size, image_channels, num_row, epoch):
         image_list.append(image_data)
     save_image(make_grid(image_list, nrow=num_row), save_path + "epoch_" + str(epoch) + ".png")
 
-def load_cifar_10(image_size=32, batch_size=128, root="../CIFAR10_data"):
+def load_dataset(name, image_size, batch_size):
+    print("Loading ", name, " dataset.")
+    if name == "MNIST":
+        return load_mnist(image_size, batch_size, root="../datasets/MNIST_data")
+    elif name == "CIFAR10":
+        return load_cifar_10(image_size, batch_size, root="../datasets/CIFAR10_data")
+    elif name == "POKEMON":
+        return load_pokemon(image_size, batch_size, root="../datasets/POKEMON_data")
+    elif name == "EMOJI":
+        return load_emoji(image_size, batch_size, root="../datasets/EMOJI_data")
+    elif name == "PAINTINGS":
+        return load_paintings(image_size, batch_size, root="../datasets/PAINTINGS_data")
+    else:
+        raise NameError("Dataset not supported.")
+        
+def load_paintings(image_size=32, batch_size=64, root="../datasets/PAINTINGS_data"):
+
+    transform = transforms.Compose([
+                    transforms.Resize(image_size),
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
+    train_set = datasets.ImageFolder(root=root, transform=transform)
+
+    print('Number of images: ', len(train_set))
+    print('Sample image shape: ', train_set[0][0].shape, end='\n\n')
+    
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
+
+    return train_loader
+
+def load_emoji(image_size=32, batch_size=64, root="../datasets/EMOJI_data"):
+
+    transform = transforms.Compose([
+                    transforms.Resize(image_size),
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
+    train_set = datasets.ImageFolder(root=root, transform=transform)
+
+    print('Number of images: ', len(train_set))
+    print('Sample image shape: ', train_set[0][0].shape, end='\n\n')
+    
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
+
+    return train_loader
+        
+
+def load_cifar_10(image_size=32, batch_size=128, root="../datasets/CIFAR10_data"):
     # Create transform
     trans = transforms.Compose([
             transforms.Resize(image_size),
@@ -86,7 +136,7 @@ def load_cifar_10(image_size=32, batch_size=128, root="../CIFAR10_data"):
 
     return train_loader
 
-def load_mnist(image_size=32, batch_size=128, root="../MNIST_data"):
+def load_mnist(image_size=32, batch_size=128, root="../datasets/MNIST_data"):
     # Create transform
     trans = transforms.Compose([
             transforms.Resize(image_size),
@@ -107,9 +157,10 @@ def load_mnist(image_size=32, batch_size=128, root="../MNIST_data"):
 
     return train_loader
 
-def load_pokemon(image_size=32, batch_size=128, root="../pokemon_data"):
+def load_pokemon(image_size=32, batch_size=128, root="../datasets/pokemon_data"):
 
     transform = transforms.Compose([
+                    transforms.Resize(image_size),
                     transforms.ToTensor(),
                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])

@@ -17,7 +17,7 @@ class DCGANTrainer():
                  model_complexity=COMPLEXITY, learning_rate=LEARNING_RATE, packing=PACKING,
                  real_label_smoothing=REAL_LABEL_SMOOTHING, fake_label_smoothing=FAKE_LABEL_SMOOTHING,
                  dropout_prob=DROPOUT_PROB, nb_discriminator_step=NB_DISCRIMINATOR_STEP, 
-                 image_channels=IMAGE_CHANNELS, batch_size=MINIBATCH_SIZE):
+                 image_channels=IMAGE_CHANNELS, batch_size=MINIBATCH_SIZE, nb_generator_step=NB_GENERATOR_STEP):
 
         self.batch_size = batch_size
         self.latent_input = latent_input
@@ -29,6 +29,7 @@ class DCGANTrainer():
         self.real_label_smoothing = real_label_smoothing
         self.fake_label_smoothing = fake_label_smoothing
         self.nb_discriminator_step = nb_discriminator_step
+        self.nb_generator_step = nb_generator_step
         
         # Device (cpu or gpu)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -51,16 +52,8 @@ class DCGANTrainer():
         os.makedirs(self.save_path, exist_ok=True)
 
     def load_dataset(self, name):
-        print("Loading ", name, " dataset.")
-        if name == "MNIST":
-            self.train_loader = utils.load_mnist(self.image_size, self.batch_size, root="../MNIST_data")
-        elif name == "CIFAR10":
-            self.train_loader = utils.load_cifar_10(self.image_size, self.batch_size, root="../CIFAR10_data")
-        elif name == "POKEMON":
-            self.train_loader = utils.load_pokemon(self.image_size, self.batch_size, root="../POKEMON_data")
-        else:
-            raise NameError("The only supported datasets are MNIST, CIFAR10 and POKEMON.")
-
+        self.train_loader = utils.load_dataset(name, self.image_size, self.batch_size)
+        
     def train(self, nb_epoch = NB_EPOCH):
         print("Start training.")
 
@@ -71,7 +64,6 @@ class DCGANTrainer():
             d_loss = []
 
             for batch_id, (x, target) in enumerate(self.train_loader):
-
                 real_batch_data = x.to(self.device)
                 current_batch_size = x.shape[0]
 
@@ -79,25 +71,32 @@ class DCGANTrainer():
                 packed_batch_size = packed_real_data.shape[0]
 
                 # labels
-                label_real = torch.full((packed_batch_size,), 1, device=self.device)
-                label_fake = torch.full((packed_batch_size,), 0, device=self.device)
+                label_real = torch.full((packed_batch_size,), 1, device=self.device).squeeze()
+                label_fake = torch.full((packed_batch_size,), 0, device=self.device).squeeze()
                 # smoothed real labels between 0.7 and 1, and fake between 0 and 0.3
-                label_real_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3 + 0.7
-                label_fake_smooth = torch.rand((packed_batch_size,)).to(self.device) * 0.3
+                label_real_smooth = torch.rand((packed_batch_size,)).to(self.device).squeeze() * 0.3 + 0.7
+                label_fake_smooth = torch.rand((packed_batch_size,)).to(self.device).squeeze() * 0.3
 
+                temp_discriminator_loss = []
+                temp_generator_loss = []
+                
                 ### Train discriminator multiple times
                 for i in range(self.nb_discriminator_step):
                     loss_discriminator_total = self.train_discriminator(packed_real_data, 
                                                         current_batch_size,
                                                         label_real_smooth if self.real_label_smoothing else label_real,
                                                         label_fake_smooth if self.fake_label_smoothing else label_fake)
+                                                        
+                    temp_discriminator_loss.append(loss_discriminator_total.item())
 
-                ### Train generator
-                loss_generator = self.train_generator(current_batch_size, label_real)
+                ### Train generator multiple times
+                for i in range(self.nb_generator_step):
+                    loss_generator_total = self.train_generator(current_batch_size, label_real)
+                    temp_generator_loss.append(loss_generator_total.item())
 
                 ### Keep track of losses
-                d_loss.append(loss_discriminator_total.item())
-                g_loss.append(loss_generator.item())
+                d_loss.append(torch.mean(torch.tensor(temp_discriminator_loss)))
+                g_loss.append(torch.mean(torch.tensor(temp_generator_loss)))
 
             self.discriminator_losses.append(torch.mean(torch.tensor(d_loss)))
             self.generator_losses.append(torch.mean(torch.tensor(g_loss)))
@@ -134,7 +133,6 @@ class DCGANTrainer():
         loss_discriminator_total = loss_discriminator_real + loss_discriminator_fake
         loss_discriminator_total.backward()
         self.D_optimiser.step()
-
         return loss_discriminator_total
 
 
