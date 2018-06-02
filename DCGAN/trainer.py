@@ -8,7 +8,7 @@ from torchvision import datasets
 import torchvision.transforms as transforms
 
 from hyperparameters import *
-from models import Generator64 as Generator, Discriminator64 as Discriminator
+from models import Generator, Discriminator
 
 class DCGANTrainer():
     def __init__(self, save_path=SAVE_PATH, beta1=BETA1, beta2=BETA2, 
@@ -35,8 +35,8 @@ class DCGANTrainer():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Models
-        self.generator = Generator(latent_input, model_complexity, dropout_prob, weights_mean, weights_std, image_channels).to(self.device)
-        self.discriminator = Discriminator(model_complexity, weights_mean, weights_std, packing, image_channels).to(self.device)
+        self.generator = Generator(latent_input, model_complexity, dropout_prob, weights_mean, weights_std, image_channels, image_size).to(self.device)
+        self.discriminator = Discriminator(model_complexity, weights_mean, weights_std, packing, image_channels, image_size).to(self.device)
 
         print("------- GENERATOR ---------")
         print(self.generator)
