@@ -69,6 +69,8 @@ def load_dataset(name, image_size, batch_size):
     print("Loading ", name, " dataset.")
     if name == "MNIST":
         return load_mnist(image_size, batch_size, root="../datasets/MNIST_data")
+    if name == "FASHIONMNIST":
+        return load_fashion_mnist(image_size, batch_size, root="../datasets/FASHIONMNIST_data")
     elif name == "CIFAR10":
         return load_cifar_10(image_size, batch_size, root="../datasets/CIFAR10_data")
     elif name == "POKEMON":
@@ -157,7 +159,28 @@ def load_mnist(image_size=32, batch_size=128, root="../datasets/MNIST_data"):
 
     return train_loader
 
-def load_pokemon(image_size=32, batch_size=128, root="../datasets/pokemon_data"):
+def load_fashion_mnist(image_size=32, batch_size=128, root="../datasets/FASHIONMNIST_data"):
+    # Create transform
+    trans = transforms.Compose([
+            transforms.Resize(image_size),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+    ])
+
+    # Load dataset
+    train_set = datasets.FashionMNIST(root=root, train=True, transform=trans, download=True)
+
+    print('Number of images: ', len(train_set))
+    print('Sample image shape: ', train_set[0][0].shape, end='\n\n')
+    
+    train_loader = torch.utils.data.DataLoader(
+                        dataset=train_set,
+                        batch_size=batch_size,
+                        shuffle=True)
+
+    return train_loader
+
+def load_pokemon(image_size=32, batch_size=128, root="../datasets/POKEMON_data"):
 
     transform = transforms.Compose([
                     transforms.Resize(image_size),
@@ -173,4 +196,3 @@ def load_pokemon(image_size=32, batch_size=128, root="../datasets/pokemon_data")
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
 
     return train_loader
-    
