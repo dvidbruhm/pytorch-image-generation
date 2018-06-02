@@ -121,7 +121,7 @@ class Generator64(nn.Module):
         return output
 
 class Discriminator64(nn.Module):
-    def __init__(self, general_complexity, weights_mean, weights_std, packing):
+    def __init__(self, general_complexity, weights_mean, weights_std, packing, image_channels):
         super(Discriminator64, self).__init__()
 
         self.loss = nn.BCELoss()

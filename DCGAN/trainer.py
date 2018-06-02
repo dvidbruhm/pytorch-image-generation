@@ -8,7 +8,7 @@ from torchvision import datasets
 import torchvision.transforms as transforms
 
 from hyperparameters import *
-from models import Generator32 as Generator, Discriminator32 as Discriminator
+from models import Generator64 as Generator, Discriminator64 as Discriminator
 
 class DCGANTrainer():
     def __init__(self, save_path=SAVE_PATH, beta1=BETA1, beta2=BETA2, 
@@ -38,6 +38,11 @@ class DCGANTrainer():
         self.generator = Generator(latent_input, model_complexity, dropout_prob, weights_mean, weights_std, image_channels).to(self.device)
         self.discriminator = Discriminator(model_complexity, weights_mean, weights_std, packing, image_channels).to(self.device)
 
+        print("------- GENERATOR ---------")
+        print(self.generator)
+        print("------- DISCRIMINATOR ---------")
+        print(self.discriminator)
+
         # Optimizers
         self.D_optimiser = optim.Adam(self.discriminator.parameters(), lr = learning_rate, betas = (beta1, beta2))
         self.G_optimiser = optim.Adam(self.generator.parameters(), lr = learning_rate, betas = (beta1, beta2))
@@ -50,6 +55,7 @@ class DCGANTrainer():
         # Create directory for the results if it doesn't already exists
         import os
         os.makedirs(self.save_path, exist_ok=True)
+        os.makedirs(self.save_path + "real/", exist_ok=True)
 
     def load_dataset(self, name):
         self.train_loader = utils.load_dataset(name, self.image_size, self.batch_size)
@@ -88,11 +94,17 @@ class DCGANTrainer():
                                                         label_fake_smooth if self.fake_label_smoothing else label_fake)
                                                         
                     temp_discriminator_loss.append(loss_discriminator_total.item())
+                    #print("Discriminator step ", str(i), " with loss : ", loss_discriminator_total.item())
 
                 ### Train generator multiple times
                 for i in range(self.nb_generator_step):
                     loss_generator_total = self.train_generator(current_batch_size, label_real)
                     temp_generator_loss.append(loss_generator_total.item())
+                    #print("Generator step ", str(i), " with loss : ", loss_generator_total.item())
+
+                
+                if batch_id == len(self.train_loader) - 2:
+                    utils.save_images(real_batch_data, self.save_path + "real/", self.image_size, self.image_channels, self.nb_image_to_gen, epoch)
 
                 ### Keep track of losses
                 d_loss.append(torch.mean(torch.tensor(temp_discriminator_loss)))
