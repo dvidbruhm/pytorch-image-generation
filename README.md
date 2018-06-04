@@ -1,6 +1,6 @@
 # PokeGeneration
 
-This repository contains pytorch implementation of various generative models to generate images on multiple datasets.
+This repository contains pytorch implementations of various generative models to generate images on multiple datasets.
 
 list of links to models
 
