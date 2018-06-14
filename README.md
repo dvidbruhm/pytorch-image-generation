@@ -105,9 +105,9 @@ Training of the generator:
 
 <img src="https://latex.codecogs.com/svg.latex?\Large&space;Loss_G=log(D(G(latent\_input)))" title="discriminator loss" />
 
-In general, GANs are hard to train because they can suffer of mode collapse or vanishing gradients. Some techniques I used to help the training process includes:
-- [Label smoothing]()
-- [Packing]()
+In general, GANs can suffer of mode collapse or vanishing gradients. Some techniques I used to help the training process includes:
+- [Label smoothing](https://arxiv.org/abs/1606.03498)
+- [Packing](https://arxiv.org/pdf/1712.04086.pdf)
 - Using multiple steps for the generator and/or discriminator for each iteration
 
 ### DCGAN
@@ -149,26 +149,33 @@ and for the generator:
 ### Conditional GAN (CGAN)
 **[[Paper arxiv link](https://arxiv.org/abs/1411.1784)]**
 
-details
+TODO: add explication of CGAN
 
 #### Results
+
+*FASHIONMNIST*
+
+<img src="images/cgan_results_fashionmnist.gif">
 
 ## Autoencoders
 
-explication autoencoder
+TODO: add explication of autoencoders
 
 ### Autoencoder
 
-
-details
-
 #### Results
+
+*Pokemon*
+
+![encoded](images/autoencoder/pokemon/result.png)
 
 ### Variational autoencoder (VAE)
 **[[Paper arxiv link](https://arxiv.org/pdf/1312.6114.pdf)]**
 
-details
+TODO: add explication of VAEs
 
 #### Results
 
-# References
+*Pokemon*
+
+<img src="images/VAE_results_pokemon.gif">
