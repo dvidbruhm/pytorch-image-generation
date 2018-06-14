@@ -105,9 +105,9 @@ Training of the generator:
 
 <img src="https://latex.codecogs.com/svg.latex?\Large&space;Loss_G=log(D(G(latent\_input)))" title="discriminator loss" />
 
-In general, GANs are hard to train because they can suffer of mode collapse or vanishing gradients. Some techniques I used to help the training process includes:
-- [Label smoothing]()
-- [Packing]()
+In general, GANs can suffer of mode collapse or vanishing gradients. Some techniques I used to help the training process includes:
+- [Label smoothing](https://arxiv.org/abs/1606.03498)
+- [Packing](https://arxiv.org/pdf/1712.04086.pdf)
 - Using multiple steps for the generator and/or discriminator for each iteration
 
 ### DCGAN
