@@ -4,6 +4,7 @@
 
 This repository contains pytorch implementations of various generative models to generate images on multiple datasets. I wanted to use datasets other than MNIST to make it a bi more interesting, so I tried some models on a dataset of paintings of a painter that I like a lot ([Odilon Redon](https://www.odilon-redon.org/)), and on a dataset of all pokemon sprites from every game. Datasets are covered mode in details in the following sections.
 
+## Table of content
 - [Getting started](https://github.com/dvidbruhm/ImageGeneration#getting-started)
 - [Datasets](https://github.com/dvidbruhm/ImageGeneration#datasets)
 - [Models](https://github.com/dvidbruhm/ImageGeneration#models)
@@ -79,6 +80,7 @@ This is also a custom make dataset containg all the 4744 images of all pokemon s
 Here is the detail implementation and results of each model and the results for each one on every dataset.
 
 ## Generative adversarial networks (GAN)
+**[[Paper arxiv link](https://arxiv.org/abs/1406.2661)]**
 
 In a GAN, two networks try to outperform each other. The first one, the generator, generates new data and tries to fool the second network, the discriminator, into thinking it is a real data (from the dataset) and not a new generated data. 
 
@@ -109,6 +111,7 @@ In general, GANs are hard to train because they can suffer of mode collapse or v
 - Using multiple steps for the generator and/or discriminator for each iteration
 
 ### DCGAN
+**[[Paper arxiv link](https://arxiv.org/abs/1511.06434)]**
 
 DCGAN is the same as a standard GAN, but the generator and discriminator are composed of convolutional layers instead of fully connected layers. They are more suited for images and are faster to train due to them having less weights.
 
@@ -131,6 +134,7 @@ DCGAN is the same as a standard GAN, but the generator and discriminator are com
 <img src="images/dcgan_results_pokemon.gif">
 
 ### LSGAN
+**[[Paper arxiv link](https://arxiv.org/abs/1611.04076)]**
 
 LSGAN is the same as DCGAN, but the loss functions are changed. For the discriminator:
 
@@ -143,6 +147,7 @@ and for the generator:
 #### Results
 
 ### Conditional GAN (CGAN)
+**[[Paper arxiv link](https://arxiv.org/abs/1411.1784)]**
 
 details
 
@@ -160,6 +165,7 @@ details
 #### Results
 
 ### Variational autoencoder (VAE)
+**[[Paper arxiv link](https://arxiv.org/pdf/1312.6114.pdf)]**
 
 details
 
