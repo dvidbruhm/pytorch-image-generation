@@ -123,7 +123,7 @@ DCGAN is the same as a standard GAN, but the generator and discriminator are com
 
 *FASHIONMNIST*
 
-<img src="images/dcgan_results_fashionmnist.gif">
+<img src="images/dcgan_results_fashionmnist.gif" width="320">
 
 *Paintings*
 
