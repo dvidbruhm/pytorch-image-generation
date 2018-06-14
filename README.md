@@ -149,26 +149,33 @@ and for the generator:
 ### Conditional GAN (CGAN)
 **[[Paper arxiv link](https://arxiv.org/abs/1411.1784)]**
 
-details
+TODO: add explication of CGAN
 
 #### Results
+
+*FASHIONMNIST*
+
+<img src="images/cgan_results_fashionmnist.gif">
 
 ## Autoencoders
 
-explication autoencoder
+TODO: add explication of autoencoders
 
 ### Autoencoder
 
-
-details
-
 #### Results
+
+*Pokemon*
+
+![encoded](images/autoencoder/pokemon/result.png)
 
 ### Variational autoencoder (VAE)
 **[[Paper arxiv link](https://arxiv.org/pdf/1312.6114.pdf)]**
 
-details
+TODO: add explication of VAEs
 
 #### Results
 
-# References
+*Pokemon*
+
+<img src="images/VAE_results_pokemon.gif">
