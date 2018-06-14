@@ -107,19 +107,19 @@ DCGAN is the same as a standard GAN, but the generator and discriminator are com
 
 *MNIST*
 
-<img src="results/dcgan_results_mnist.gif">
+<img src="images/dcgan_results_mnist.gif">
 
 *FASHIONMNIST*
 
-<img src="results/dcgan_results_fashionmnist.gif">
+<img src="images/dcgan_results_fashionmnist.gif">
 
 *Paintings*
 
-<img src="results/dcgan_results_paintings.gif">
+<img src="images/dcgan_results_paintings.gif">
 
 *Pokemon*
 
-<img src="results/dcgan_results_pokemon.gif">
+<img src="images/dcgan_results_pokemon.gif">
 
 ### LSGAN
 
