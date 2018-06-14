@@ -4,7 +4,16 @@
 
 This repository contains pytorch implementations of various generative models to generate images on multiple datasets. I wanted to use datasets other than MNIST to make it a bi more interesting, so I tried some models on a dataset of paintings of a painter that I like a lot ([Odilon Redon](https://www.odilon-redon.org/)), and on a dataset of all pokemon sprites from every game. Datasets are covered mode in details in the following sections.
 
-TABLE of contents TODO
+- [Getting started](https://github.com/dvidbruhm/ImageGeneration#getting-started)
+- [Datasets](https://github.com/dvidbruhm/ImageGeneration#datasets)
+- [Models](https://github.com/dvidbruhm/ImageGeneration#models)
+  - [GANs](https://github.com/dvidbruhm/ImageGeneration#generative-adversarial-networks-gan)
+    - [DCGAN](https://github.com/dvidbruhm/ImageGeneration#dcgan)
+    - [LSGAN](https://github.com/dvidbruhm/ImageGeneration#lsgan)
+    - [CGAN](https://github.com/dvidbruhm/ImageGeneration#conditional-gan-cgan)
+  - [Autoencoders](https://github.com/dvidbruhm/ImageGeneration#autoencoders)
+    - [Autoencoder](https://github.com/dvidbruhm/ImageGeneration#autoencoder)
+    - [VAE](https://github.com/dvidbruhm/ImageGeneration#variational-autoencoder-vae)
 
 # Getting started
 
